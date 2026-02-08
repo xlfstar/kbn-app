@@ -1,0 +1,81 @@
+:root {
+  /* 亮色主题 */
+  --titlebar-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --titlebar-color: #ffffff;
+  --titlebar-height: 40px;
+  --titlebar-control-size: 12px;
+  --titlebar-control-close: #ff5f57;
+  --titlebar-control-minimize: #ffbd2e;
+  --titlebar-control-maximize: #28ca42;
+  --bg-color: #edeff2;
+  --bg-reverse-color: #222427;
+  --bg-content-color: #f2f4f6;
+  --text-color: #1d1d1f;
+  --text-reverse-color: #f5f9fe;
+  --bg-hover-color: #dce0e4;
+  --bg-table-header: #fafafc;
+  --bg-card-color: #fff;
+  --bg-tabs-color: #fff;
+  --bg-active-tab-color: #edeff2;
+  --bg-aside-color: #fff;
+  --nx-color: rgb(255, 255, 255);
+  --nx-box-shadow:
+    0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] {
+  /* 暗色主题 */
+  --titlebar-bg: #1e1e2e;
+  --titlebar-color: #cdd6f4;
+  --titlebar-control-close: #ff5f57;
+  --titlebar-control-minimize: #ffbd2e;
+  --titlebar-control-maximize: #28ca42;
+  --bg-color: #222427;
+  --bg-reverse-color: #edeff2;
+  --bg-content-color: #1a1b1d;
+  --text-color: #d1d3db;
+  --text-reverse-color: #1d1d1f;
+  --bg-hover-color: #2b2e31;
+  --bg-table-header: #26262a;
+  --bg-card-color: #1a1b1d;
+  --bg-tabs-color: #17191a;
+  --bg-active-tab-color: #1a1b1d;
+  --bg-aside-color: #1a1b1d;
+  --bg-text-color: #1a1b1d;
+  --nx-color: rgb(72, 72, 78);
+  --nx-box-shadow:
+    0 3px 6px -4px rgba(0, 0, 0, 0.24), 0 6px 12px 0 rgba(0, 0, 0, 0.16),
+    0 9px 18px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] {
+  /* 亮色主题 */
+  --titlebar-bg: #f5f5f7;
+  --titlebar-color: #1d1d1f;
+  --titlebar-control-close: #ff3b30;
+  --titlebar-control-minimize: #ff9500;
+  --titlebar-control-maximize: #34c759;
+  --bg-color: #edeff2;
+  --bg-reverse-color: #222427;
+  --bg-content-color: #fff;
+  --text-color: #1d1d1f;
+  --text-reverse-color: #f5f9fe;
+  --bg-hover-color: #dce0e4;
+  --bg-table-header: #fafafc;
+  --bg-card-color: #fff;
+  --bg-tabs-color: #f8f8f9;
+  --bg-active-tab-color: #fff;
+  --bg-aside-color: #fff;
+  --bg-text-color: #fff;
+  --nx-color: rgb(255, 255, 255);
+  --nx-box-shadow:
+    0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding-bottom: 10px;
+  padding-right: 6px;
+}
