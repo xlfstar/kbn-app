@@ -27,7 +27,7 @@
 <script setup lang="jsx">
 import { ref, computed, onMounted } from 'vue'
 import { NButton, NTag, NSpace, NPopconfirm } from 'naive-ui'
-import { warehouseLocationApi, warehouseLocationTypeApi, warehouseApi } from '@renderer/api'
+import { warehouseLocationApi, warehouseLocationTypeApi, warehouseApi,warehouseAreaTypeApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
@@ -99,6 +99,13 @@ const columns = ref([
     width: 100,
     inputType: 'input',
     filterable: false
+  },
+  {
+    titleKey: 'warehouseAreaType',
+    key: 'areaTypeId',
+    width: 100,
+    inputType: 'xSelect',
+    api:warehouseAreaTypeApi.getAllWarehouseAreaTypes
   },
   {
     titleKey: 'locationType',
