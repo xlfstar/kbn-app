@@ -39,6 +39,10 @@ const modalFormData = ref({})
 const currentRow = ref({})
 const statusOptions = computed(() => [
   {
+    label: t('used'),
+    value: 2
+  },
+  {
     label: t('enable'),
     value: 1
   },
@@ -63,12 +67,16 @@ const columns = ref([
     key: 'warehouseId',
     width: 150,
     inputType: 'xSelect',
-    api: warehouseApi.getAllWarehouses
+    api: warehouseApi.getAllWarehouses,
+    render: (row) => {
+      const { warehouse } = row || {}
+      return warehouse?.name || ''
+    }
   },
   {
     titleKey: 'locationCode',
     key: 'locationCode',
-    width: 100,
+    width: 120,
     inputType: 'input'
   },
   {
@@ -97,7 +105,12 @@ const columns = ref([
     key: 'locationType',
     width: 150,
     inputType: 'xSelect',
-    api: warehouseLocationTypeApi.getWarehouseLocationTypeList
+    api: warehouseLocationTypeApi.getWarehouseLocationTypeList,
+    render: (row) => {
+      const { type } = row || {}
+      return type?.name || ''
+    },
+    defaultValue: 1
   },
   {
     titleKey: 'maxWeight',
@@ -118,6 +131,7 @@ const columns = ref([
     style: { width: '100%' },
     filterable: false
   },
+  { titleKey: 'sort', key: 'sort', width: 60, inputType: 'input', filterable: false },
   {
     titleKey: 'status',
     key: 'status',
@@ -137,7 +151,7 @@ const columns = ref([
     filterMultiple: true,
     defaultValue: 1
   },
-  { titleKey: 'sort', key: 'sortOrder', width: 60, inputType: 'input', filterable: false },
+
   // {
   //   titleKey: 'remark',
   //   key: 'remark',

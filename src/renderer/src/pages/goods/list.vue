@@ -77,13 +77,13 @@ const columns = ref([
   },
   {
     titleKey: 'warehouse',
-    key: 'warehouse',
+    key: 'warehouseId',
     width: 150,
     inputType: 'input'
   },
   {
-    titleKey: 'location',
-    key: 'location',
+    titleKey: 'warehouseLocation',
+    key: 'warehouseLocationId',
     width: 150,
     inputType: 'input'
   },

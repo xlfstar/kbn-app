@@ -134,5 +134,12 @@ export default {
   layerNo: 'Layer No',
   maxWeight: 'Max Weight',
   positionNo: 'Position No',
-  maxVolume: 'Max Volume'
+  maxVolume: 'Max Volume',
+  warehouseType: 'Warehouse Type',
+  manufacturer: 'Manufacturer',
+  floorArea: 'Floor Area',
+  contactPerson: 'Contact Person',
+  contactPhone: 'Contact Phone',
+  used: 'Used',
+  warehouseLocation: 'Warehouse Location'
 }

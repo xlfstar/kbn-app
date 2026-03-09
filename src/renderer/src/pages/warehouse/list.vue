@@ -16,14 +16,13 @@
     @confirm="handleComfirm"
     @delete-items="handleDeleteItems"
   >
-    <template #maxWeight-suffix>KG</template>
-    <template #maxVolume-suffix>m³</template>
+    <template #area-suffix>m²</template>
   </x-table>
 </template>
 <script setup lang="jsx">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { NButton, NTag, NSpace, NPopconfirm } from 'naive-ui'
-import { warehouseTypeApi, warehouseLocationTypeApi, warehouseApi } from '@renderer/api'
+import { warehouseTypeApi, warehouseApi, areaApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
@@ -33,6 +32,9 @@ const isEdit = ref(false)
 const isRefresh = ref(false)
 const modalFormData = ref({})
 const currentRow = ref({})
+const tableRef = ref(null)
+const stateOptions = ref([])
+const cityOptions = ref([])
 const statusOptions = computed(() => [
   {
     label: t('enable'),
@@ -64,49 +66,61 @@ const columns = ref([
   {
     titleKey: 'warehouseType',
     key: 'warehouseType',
-    width: 100,
+    width: 120,
     inputType: 'xSelect',
     api: warehouseTypeApi.getAllWarehouseTypes,
     filterable: false
   },
   {
-    titleKey: 'layerNo',
-    key: 'layerNo',
-    width: 100,
-    inputType: 'input',
-    filterable: false
-  },
-  {
-    titleKey: 'positionNo',
-    key: 'positionNo',
-    width: 100,
-    inputType: 'input',
-    filterable: false
-  },
-  {
-    titleKey: 'locationType',
-    key: 'locationType',
+    titleKey: 'state',
+    key: 'state',
     width: 150,
     inputType: 'xSelect',
-    api: warehouseLocationTypeApi.getWarehouseLocationTypeList
+    filterable: false,
+    api: areaApi.getAllAreas,
+    childrenField: 'xxx',
+    listeners: {
+      change: (value, option) => {
+        if (isEdit.value) return
+        const children = option?.children || []
+        cityOptions.value = children
+      }
+    },
+    render: (row) => row.stateInfo?.name || ''
   },
   {
-    titleKey: 'maxWeight',
-    key: 'maxWeight',
+    titleKey: 'city',
+    key: 'city',
+    width: 150,
+    inputType: 'select',
+    filterable: false,
+    options: cityOptions,
+    valueField: 'id',
+    render: (row) => row.cityInfo?.name || ''
+  },
+  { titleKey: 'address', key: 'address', width: 150, inputType: 'input', filterable: false },
+  {
+    titleKey: 'contactPerson',
+    key: 'contactPerson',
     width: 100,
+    inputType: 'input',
+    filterable: false
+  },
+  {
+    titleKey: 'contactPhone',
+    key: 'contactPhone',
+    width: 100,
+    inputType: 'input',
+    filterable: false
+  },
+  {
+    titleKey: 'floorArea',
+    key: 'area',
+    width: 80,
     inputType: 'number',
     showButton: false,
     style: { width: '100%' },
-    filterable: false
-  },
-
-  {
-    titleKey: 'maxVolume',
-    key: 'maxVolume',
-    width: 100,
-    inputType: 'input',
-    showButton: false,
-    style: { width: '100%' },
+    precision: 2,
     filterable: false
   },
   {
@@ -128,7 +142,16 @@ const columns = ref([
     filterMultiple: true,
     defaultValue: 1
   },
-  { titleKey: 'sort', key: 'sortOrder', width: 60, inputType: 'input', filterable: false },
+  {
+    titleKey: 'sort',
+    key: 'sortOrder',
+    width: 60,
+    inputType: 'number',
+    filterable: false,
+    precision: 0,
+    showButton: false,
+    style: { width: '100%' }
+  },
   // {
   //   titleKey: 'remark',
   //   key: 'remark',
@@ -185,12 +208,20 @@ const handleRefresh = () => {
   isRefresh.value = true
 }
 
-const handleEdit = (row) => {
+const handleEdit = async (row) => {
   // eslint-disable-next-line no-unused-vars
   currentRow.value = row
   const { createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = row || {}
   isEdit.value = true
   modalFormData.value = { ...rest }
+  await nextTick()
+  const stateRef = tableRef.value.getFieldRef('state')
+  if (stateRef) {
+    const opts = stateRef.hasCache()
+      ? stateRef.getOptions()
+      : (await stateRef.refresh(), stateRef.getOptions())
+    stateOptions.value = opts
+  }
 }
 const handleDelItem = async (row) => {
   const { id } = row || {}
@@ -217,7 +248,21 @@ const closeModal = () => {
 const handleComfirm = (e) => {
   if (!e) return
 }
+watch(cityOptions, (opts) => {
+  const col = columns.value.find((i) => i.key === 'city')
+  if (col) col.options = opts
+})
 
+watch(
+  () => [modalFormData.value.state, stateOptions.value],
+  ([val, s], [oldVal, _]) => {
+    if (!isEdit.value) return
+    cityOptions.value = val ? s.find((item) => item?.id === val)?.children || [] : []
+    if (oldVal !== undefined && val !== oldVal) {
+      modalFormData.value.cityId = null
+    }
+  }
+)
 onMounted(() => {})
 </script>
 

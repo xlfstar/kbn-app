@@ -138,5 +138,12 @@ export default {
   layerNo: '层号',
   maxWeight: '最大重量',
   positionNo: '位号',
-  maxVolume: '最大体积'
+  maxVolume: '最大体积',
+  warehouseType: '仓库类型',
+  manufacturer: '制造商',
+  floorArea: '面积',
+  contactPerson: '联系人',
+  contactPhone: '联系电话',
+  used: '已使用',
+  warehouseLocation: '库位'
 }

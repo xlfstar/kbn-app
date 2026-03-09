@@ -1,5 +1,5 @@
 <template>
-  <div>供应商</div>
+  <div>采购订单列表</div>
 </template>
 <script setup>
 import { t } from '@renderer/locales'
