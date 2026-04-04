@@ -45,14 +45,17 @@ export const useAuthStore = defineStore(
           initLoginForm.password = ''
         }
         isAuthenticated.value = true
-        await fetchGroups()
+
         // 初始化菜单与动态路由
         try {
+          await fetchGroups()
           await useMenuStore().initRoutes()
-        } catch {}
-        router.push('/')
+          return true
+        } catch {
+          return false
+        }
       } catch (err) {
-        error.value = err.message || '登录失败'
+        return false
       } finally {
         loading.value = false
       }

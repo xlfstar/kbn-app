@@ -5,6 +5,7 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
+    v-model:query="query"
     :api="warehouseLocationTypeApi.getWarehouseLocationTypeList"
     :page-options="true"
     :modal-form-data="modalFormData"
@@ -32,7 +33,10 @@ import { warehouseLocationTypeApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
+import { useSelectOptionsStore } from '@renderer/stores'
 
+const selectOptionsStore = useSelectOptionsStore()
+const query = ref({})
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
@@ -40,11 +44,11 @@ const modalFormData = ref({})
 const currentRow = ref({})
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -133,6 +137,10 @@ const columns = ref([
 ])
 const handleRefresh = () => {
   isRefresh.value = true
+  selectOptionsStore.refreshList(
+    warehouseLocationTypeApi.getWarehouseLocationTypeList,
+    'locationType'
+  )
 }
 
 const handleEdit = (row) => {
@@ -166,6 +174,10 @@ const closeModal = () => {
 }
 const handleComfirm = (e) => {
   if (!e) return
+  selectOptionsStore.refreshList(
+    warehouseLocationTypeApi.getWarehouseLocationTypeList,
+    'locationType'
+  )
 }
 
 onMounted(() => {})

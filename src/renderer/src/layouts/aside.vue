@@ -44,8 +44,8 @@
           :class="{ 'bg-(--bg-hover-color)': item.name === currentTab }"
           @click="handleNavigate(item)"
         >
-          <Icon :name="item.meta?.icon" size="12px" />
-          <span class="ml-[8px]">{{ title(item) }}</span>
+          <Icon :name="item.meta?.icon" size="16px" />
+          <span class="ml-[12px]">{{ title(item) }}</span>
         </div>
       </ResizeableView>
     </div>
@@ -74,10 +74,12 @@ const handleChangeMenu = (item, index) => {
   } else {
     showNav.value = true
   }
-  const { children } = item || {}
+  const { children, name } = item || {}
   menuIndex.value = index
   if (!Array.isArray(children) || children.length === 0) {
-    // router.push(path)
+    if (name) {
+      router.push({ name })
+    }
     return
   }
 }
@@ -87,9 +89,10 @@ const navList = computed(() =>
 )
 
 const handleNavigate = (item) => {
-  useTabsStore().addTab(item)
+  // useTabsStore().addTab(item)
   const { name } = item || {}
-  useTabsStore().setCurrentTab(name)
+  if (router.currentRoute.value.name === name) return
+  // useTabsStore().setCurrentTab(name)
   router.push({ name })
 }
 const title = computed(() => {

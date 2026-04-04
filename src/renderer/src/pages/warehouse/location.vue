@@ -1,53 +1,72 @@
 <template>
-  <x-table
-    ref="tableRef"
-    v-model:columns="columns"
-    v-model:is-edit="isEdit"
-    v-model:checked-row-keys="checkedRowKeys"
-    v-model:is-refresh="isRefresh"
-    :api="warehouseLocationApi.getWarehouseLocationList"
-    :page-options="true"
-    :modal-form-data="modalFormData"
-    :modal-api="
-      isEdit
-        ? warehouseLocationApi.updateWarehouseLocation
-        : warehouseLocationApi.createWarehouseLocation
-    "
-    :multiple-check="true"
-    :rules="rules"
-    @refresh="handleRefresh"
-    @close-modal="closeModal"
-    @confirm="handleComfirm"
-    @delete-items="handleDeleteItems"
-  >
-    <template #maxWeight-suffix>KG</template>
-    <template #maxVolume-suffix>m³</template>
-  </x-table>
+  <div class="flex flex-1 flex-col">
+    <x-table
+      ref="tableRef"
+      v-model:columns="columns"
+      v-model:is-edit="isEdit"
+      v-model:checked-row-keys="checkedRowKeys"
+      v-model:is-refresh="isRefresh"
+      v-model:query="query"
+      :api="warehouseLocationApi.getWarehouseLocationList"
+      :page-options="true"
+      :modal-form-data="modalFormData"
+      :modal-api="
+        isEdit
+          ? warehouseLocationApi.updateWarehouseLocation
+          : warehouseLocationApi.createWarehouseLocation
+      "
+      :multiple-check="true"
+      :rules="rules"
+      :scroll-x="2050"
+      :batches-create="true"
+      @refresh="handleRefresh"
+      @close-modal="closeModal"
+      @confirm="handleComfirm"
+      @delete-items="handleDeleteItems"
+      @create-in-batches="handleCreateInBatches"
+    >
+      <template #maxWeight-suffix>KG</template>
+      <template #maxVolume-suffix>m³</template>
+      <template #batchesCreate>
+        <batch-create-location-modal
+          ref="batchCreateLocationModalRef"
+          @success="handleBatchSuccess"
+        />
+      </template>
+    </x-table>
+  </div>
 </template>
 <script setup lang="jsx">
 import { ref, computed, onMounted } from 'vue'
 import { NButton, NTag, NSpace, NPopconfirm } from 'naive-ui'
-import { warehouseLocationApi, warehouseLocationTypeApi, warehouseApi,warehouseAreaTypeApi } from '@renderer/api'
+import {
+  warehouseLocationApi,
+  warehouseLocationTypeApi,
+  warehouseApi,
+  warehouseZoneApi
+} from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
+import BatchCreateLocationModal from './components/batchCreateLocationModal.vue'
 import dayjs from 'dayjs'
-
+const query = ref({})
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
 const modalFormData = ref({})
 const currentRow = ref({})
+const batchVisible = ref(false)
 const statusOptions = computed(() => [
   {
-    label: t('used'),
+    labelKey: 'used',
     value: 2
   },
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -101,11 +120,16 @@ const columns = ref([
     filterable: false
   },
   {
-    titleKey: 'warehouseAreaType',
-    key: 'areaTypeId',
-    width: 100,
+    titleKey: 'warehouseZone',
+    key: 'zoneId',
+    width: 130,
     inputType: 'xSelect',
-    api:warehouseAreaTypeApi.getAllWarehouseAreaTypes
+    api: warehouseZoneApi.getAllWarehouseZones,
+    render: (row) => {
+      const { zone } = row || {}
+      return zone?.name || ''
+    }
+    // filterable: false
   },
   {
     titleKey: 'locationType',
@@ -116,13 +140,13 @@ const columns = ref([
     render: (row) => {
       const { type } = row || {}
       return type?.name || ''
-    },
-    defaultValue: 1
+    }
+    // filterable: false
   },
   {
     titleKey: 'maxWeight',
     key: 'maxWeight',
-    width: 100,
+    width: 120,
     inputType: 'number',
     showButton: false,
     style: { width: '100%' },
@@ -132,7 +156,7 @@ const columns = ref([
   {
     titleKey: 'maxVolume',
     key: 'maxVolume',
-    width: 100,
+    width: 120,
     inputType: 'input',
     showButton: false,
     style: { width: '100%' },
@@ -211,10 +235,17 @@ const columns = ref([
     }
   }
 ])
+
+const handleCreateInBatches = () => {
+  batchVisible.value = true
+}
+
 const handleRefresh = () => {
   isRefresh.value = true
 }
-
+const handleBatchSuccess = () => {
+  handleRefresh()
+}
 const handleEdit = (row) => {
   // eslint-disable-next-line no-unused-vars
   currentRow.value = row

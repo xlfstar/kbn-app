@@ -17,7 +17,7 @@
         @contextmenu="openMenu(tab, $event)"
       >
         <span class="mr-[5px] capitalize whitespace-nowrap">{{ title(tab) }}</span>
-        <span class="remove-icon cursor-pointer" @click.stop="removeTab(tab)">
+        <span v-if="!lockTab(tab)" class="remove-icon cursor-pointer" @click.stop="removeTab(tab)">
           <Icon name="icon-delete" size="12px" />
         </span>
       </div>
@@ -36,7 +36,7 @@
         <div class="tab-menu-item enable" @click.stop="actionClose">{{ t('close') }}</div>
         <div
           :class="['tab-menu-item', tabs.length > 1 ? 'enable' : 'disabled']"
-          @click.stop="tabs.length > 1 && actionCloseOthers"
+          @click.stop="tabs.length > 1 && actionCloseOthers()"
         >
           {{ t('closeOthers') }}
         </div>
@@ -63,6 +63,13 @@ const router = useRouter()
 const tabs = computed(() => useTabsStore().tabs)
 const currentTab = computed(() => useTabsStore().currentTab)
 
+const lockTab = computed(() => {
+  return (item) => {
+    const { name } = item || {}
+    return tabs.value.length === 1 && name === 'dashboard'
+  }
+})
+
 const scrollContainer = ref(null)
 const showArrows = ref(false)
 const totalTabsWidth = ref(0)
@@ -78,16 +85,28 @@ const menuHasRight = computed(() => {
 
 const removeTab = (tab) => {
   useTabsStore().removeTab(tab)
+
+  // 如果关闭后没有标签页了，跳转到 dashboard
+  const currentTabs = useTabsStore().tabs
+  if (currentTabs.length === 0) {
+    router.push({ name: 'dashboard' })
+  } else {
+    // 否则跳转到当前激活的标签页
+    const activeTab = currentTabs.find((t) => t.name === useTabsStore().currentTab)
+    if (activeTab) {
+      router.push({ name: activeTab.name, query: activeTab.query, params: activeTab.params })
+    }
+  }
 }
 
 const handleTabClick = (tab) => {
   useTabsStore().setCurrentTab(tab.name)
-  router.push({ name: tab.name })
+  router.push({ name: tab.name, query: tab.query, params: tab.params })
 }
 const title = computed(() => {
   return (item) => {
     const l = locale ? locale.value : 'zh_CN'
-    return item.meta?.title[l]
+    return item.meta?.title ? item.meta?.title[l] : item.name
   }
 })
 
@@ -130,7 +149,9 @@ const setToLastIfNeeded = (closedNames) => {
     const last = tabs.value[tabs.value.length - 1]
     if (last) {
       useTabsStore().setCurrentTab(last.name)
-      router.push({ name: last.name })
+      router.push({ name: last.name, query: last.query, params: last.params })
+    } else {
+      router.push({ name: 'dashboard' })
     }
   }
 }
@@ -153,11 +174,16 @@ const actionCloseRight = () => {
 const actionCloseOthers = () => {
   if (!menuTab.value) return
   const keep = menuTab.value.name
+  const targetTab = tabs.value.find((i) => i.name === keep)
   const otherNames = tabs.value.filter((i) => i.name !== keep).map((i) => i.name)
   otherNames.forEach((name) => useTabsStore().removeTab({ name }))
   setToLastIfNeeded(otherNames)
   useTabsStore().setCurrentTab(keep)
-  router.push({ name: keep })
+  if (targetTab) {
+    router.push({ name: keep, query: targetTab.query, params: targetTab.params })
+  } else {
+    router.push({ name: keep })
+  }
   closeMenu()
 }
 

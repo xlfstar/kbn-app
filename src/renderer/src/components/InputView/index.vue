@@ -168,14 +168,15 @@ const computedProps = computed(() => {
     baseProps.clearable = true
     baseProps.filterable = true
     // baseProps.multiple = props.col.multiple
-    baseProps.keys = props.col.keys || { label: 'label', value: 'value' }
+    baseProps.keyField = props.col.keyField || 'value'
+    baseProps.labelField = props.col.labelField || 'label'
     baseProps.minCollapsedNum = props.col.minCollapsedNum || 2
   } else if (props.col.inputType === 'xSelect') {
-    baseProps.data = props.col.options
     baseProps.clearable = true
     baseProps.filterable = true
-    // baseProps.multiple = props.col.multiple
-    baseProps.keys = props.col.keys || { label: 'label', value: 'value' }
+    // xSelect 自己有默认的 keyField='id', labelField='label'
+    if (props.col.keyField) baseProps.keyField = props.col.keyField
+    if (props.col.labelField) baseProps.labelField = props.col.labelField
     baseProps.minCollapsedNum = props.col.minCollapsedNum || 2
   }
 

@@ -1,9 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Layout from '@renderer/layouts/index.vue'
+import { useTabsStore, useMenuStore } from '@renderer/stores'
 const routes = [
   {
     path: '/',
-    name: 'dashboard',
+    // name: 'dashboard',
     component: Layout,
     meta: {
       title: {
@@ -15,7 +16,7 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'dashboardIndex',
+        name: 'dashboard',
         component: () => import('@renderer/pages/dashboard/index.vue'),
         meta: {
           title: {
@@ -174,11 +175,22 @@ const routes = [
   {
     path: '/user',
     name: 'user',
-    component: () => import('@renderer/pages/user/index.vue'),
+    component: Layout,
     meta: {
       title: 'userCenter',
       hide: true
-    }
+    },
+    children: [
+      {
+        path: '',
+        name: 'userIndex',
+        component: () => import('@renderer/pages/user/index.vue'),
+        meta: {
+          title: 'userCenter',
+          hide: true
+        }
+      }
+    ]
   },
   {
     path: '/blank',
@@ -202,6 +214,30 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes
+})
+router.beforeEach((to, from, next) => {
+  const tabStore = useTabsStore()
+  const menuStore = useMenuStore()
+
+  // 只有在路由初始化完成后，且路由有 name 时才记录 tab
+  // 这样可以避免应用刚启动时的默认路由（如 '/' 或无 name 的路由）覆盖掉 pinia 中持久化恢复的 currentTab
+  if (menuStore.isInitRoutes && to.name) {
+    // 检查目标路由和当前 store 中保存的是否完全一致
+    // 主要是为了避免刷新页面时，初始路由（不带参数）覆盖掉 store 中原本带着参数的同名 tab
+    const existingTab = tabStore.tabs.find((t) => t.name === to.name)
+    const isSameRouteButWithoutParams =
+      existingTab &&
+      Object.keys(to.query).length === 0 &&
+      Object.keys(existingTab.query).length > 0 &&
+      from.name === undefined // 代表是页面刷新或初始加载
+
+    if (!isSameRouteButWithoutParams) {
+      tabStore.addTab(to)
+    }
+    tabStore.setCurrentTab(to.name)
+  }
+
+  next()
 })
 const staticRoutes = [...routes]
 export { staticRoutes }

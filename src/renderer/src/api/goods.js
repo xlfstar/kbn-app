@@ -3,11 +3,13 @@ import request from '@renderer/utils/http'
 const apiUrl = {
   GOODS_URL: '/goods',
   PACKAGE_URL: 'packaging-units',
-  WEIGHT_URL: 'weight-units'
+  WEIGHT_URL: 'weight-units',
+  IMAGE_URL: 'goods-images'
 }
 export const goodsApi = {
   getGoodsList: (data) => request.get(apiUrl.GOODS_URL, data),
   createGoods: (data) => request.post(apiUrl.GOODS_URL, data),
+  batchCreateGoods: (data) => request.post(`${apiUrl.GOODS_URL}/bulk`, data),
   updateGoods: (data) => request.put(`${apiUrl.GOODS_URL}/${data.id}`, data),
   removeGoods: (id) => request.delete(`${apiUrl.GOODS_URL}/${id}`),
   removeGoodsList: (data) => request.delete(apiUrl.GOODS_URL, data),
@@ -23,5 +25,8 @@ export const goodsApi = {
   removePackageList: (data) => request.delete(apiUrl.PACKAGE_URL, data),
   removeWeightList: (data) => request.delete(apiUrl.WEIGHT_URL, data),
   getPackageById: (id) => request.get(`${apiUrl.PACKAGE_URL}/${id}`),
-  getWeightById: (id) => request.get(`${apiUrl.WEIGHT_URL}/${id}`)
+  getWeightById: (id) => request.get(`${apiUrl.WEIGHT_URL}/${id}`),
+  createGoodsImage: (data) => request.post(`${apiUrl.IMAGE_URL}`, data),
+  updateGoodsImage: (data) => request.put(`${apiUrl.IMAGE_URL}/${data.id}`, data),
+  removeGoodsImage: (id) => request.delete(`${apiUrl.IMAGE_URL}/${id}`)
 }

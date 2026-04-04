@@ -6,6 +6,7 @@
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
     v-model:modal-form-data="modalFormData"
+    v-model:query="query"
     :api="supplierApi.getSupplierList"
     :page-options="true"
     :modal-api="isEdit ? supplierApi.updateSupplier : supplierApi.createSupplier"
@@ -34,15 +35,15 @@ const modalFormData = ref({})
 const currentRow = ref({})
 const tableRef = ref(null)
 const stateOptions = ref([])
-
+const query = ref({})
 const cityOptions = ref([])
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -72,7 +73,7 @@ const columns = ref([
     inputType: 'xSelect',
     filterable: false,
     api: areaApi.getAllAreas,
-    childrenField: 'xxx',
+    childrenField: 'XXX',
     listeners: {
       change: (value, option) => {
         if (isEdit.value) return

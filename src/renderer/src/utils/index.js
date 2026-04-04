@@ -84,3 +84,7 @@ export const arrayToTree = (items) => {
 
   return tree
 }
+// 将数字补零到5位（例如 123 → "00123"）
+export function padZero(num, length = 5) {
+  return String(num).padStart(length, '0')
+}

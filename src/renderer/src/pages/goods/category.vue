@@ -47,11 +47,11 @@ const categoryStore = useCategoryStore()
 const categoryTableRef = ref(null)
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])

@@ -5,15 +5,16 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
+    v-model:query="query"
     :api="usersApi.getUserList"
     :filter="false"
     :page-options="true"
     :modal-form-data="modalFormData"
     :modal-api="isEdit ? usersApi.updateUser : usersApi.createUser"
-    :scroll-x="1200"
+    :scroll-x="2000"
     :multiple-check="true"
-    modal-grid-cols="1"
-    modal-width="400"
+    modal-grid-cols="2"
+    :modal-width="800"
     :rules="rules"
     :selection-disabled="(row) => row.group?.code === 'surperAdmin'"
     @refresh="handleRefresh"
@@ -26,13 +27,16 @@
 <script setup lang="jsx">
 import { ref, computed } from 'vue'
 import { NButton, NTag, NSpace, NPopconfirm } from 'naive-ui'
-import { usersApi } from '@renderer/api'
+import { usersApi, dptApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { useAuthStore } from '@renderer/stores'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
+import { useLocale } from '@renderer/locales/useLocales'
 
+const { locale } = useLocale()
 const authStore = useAuthStore()
+const query = ref({})
 
 const groupOptions = computed(() => authStore.groupList)
 const checkedRowKeys = ref([])
@@ -43,14 +47,23 @@ const currentRow = ref({})
 const groupDisabled = computed(() => currentRow.value.group?.code === 'surperAdmin')
 const statusOptions = computed(() => [
   {
+    labelKey: 'enable',
     label: t('enable'),
     value: 1
   },
   {
+    labelKey: 'disable',
     label: t('disable'),
     value: 0
   }
 ])
+
+const sexOptions = computed(() => [
+  { labelKey: 'secret', label: t('secret'), value: 0 },
+  { labelKey: 'male', label: t('male'), value: 1 },
+  { labelKey: 'female', label: t('female'), value: 2 }
+])
+
 const rules = {
   username: [
     {
@@ -62,12 +75,13 @@ const rules = {
   ]
 }
 const columns = ref([
-  { titleKey: 'username', key: 'username', width: 150, inputType: 'input' },
   {
     titleKey: 'avatar',
     key: 'avatar',
     width: 100
   },
+  { titleKey: 'username', key: 'username', width: 150, inputType: 'input' },
+  { titleKey: 'realName', key: 'realName', width: 150, inputType: 'input' },
   {
     titleKey: 'role',
     key: 'groupId',
@@ -88,6 +102,36 @@ const columns = ref([
       disabled: groupDisabled
     }
   },
+  {
+    titleKey: 'department',
+    key: 'departmentId',
+    width: 200,
+    render: (row) => {
+      const { department } = row || {}
+
+      if (department) {
+        return locale.value === 'en_US' ? department.enName : department.name
+      } else {
+        return ''
+      }
+    },
+    inputType: 'xSelect',
+    api: dptApi.getAllDepartments
+  },
+  { titleKey: 'email', key: 'email', width: 150, inputType: 'input' },
+  { titleKey: 'phone', key: 'phone', width: 150, inputType: 'input' },
+  {
+    titleKey: 'sex',
+    key: 'sex',
+    width: 200,
+    inputType: 'select',
+    options: sexOptions.value,
+    render: (row) => {
+      const { sex } = row || {}
+      return sexOptions.value.find((item) => item.value === sex)?.label || ''
+    }
+  },
+
   { titleKey: 'initPassword', key: 'initPassword', width: 150 },
   {
     titleKey: 'status',
@@ -110,7 +154,7 @@ const columns = ref([
   {
     titleKey: 'lastLoginAt',
     key: 'lastLoginAt',
-    width: 100,
+    width: 120,
     render: (row) => (row.lastLoginAt ? dayjs(row.lastLoginAt).format('YYYY-MM-DD') : '')
   },
   {

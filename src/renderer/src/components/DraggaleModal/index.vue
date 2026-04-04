@@ -134,12 +134,13 @@ onUnmounted(() => {
 // 关闭模态框
 const closeModal = () => {
   emit('update:visible', false)
+
   emit('close')
 }
 
 // 确认
-const handleConfirm = () => {
-  emit('confirm')
+const handleConfirm = (e) => {
+  emit('confirm', e)
   // closeModal()
 }
 
@@ -209,9 +210,14 @@ onUnmounted(() => {
           <div v-if="footer" class="modal-footer">
             <slot name="footer">
               <n-button size="small" type="default" @click="closeModal">{{ t('cancel') }}</n-button>
-              <n-button size="small" type="primary" @click="handleConfirm" :loading="loading">{{
-                t('confirm')
-              }}</n-button>
+              <n-button
+                attr-type="button"
+                size="small"
+                type="primary"
+                :loading="loading"
+                @click="handleConfirm"
+                >{{ t('confirm') }}</n-button
+              >
             </slot>
           </div>
         </div>

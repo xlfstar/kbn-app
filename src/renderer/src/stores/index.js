@@ -24,4 +24,5 @@ export { useTabsStore } from './modules/tabs'
 export { useRulesStore } from './modules/rules'
 export { useCategoryStore } from './modules/category'
 export { useAreaStore } from './modules/area'
+export { useSelectOptionsStore } from './modules/selectOptions'
 export default pinia

@@ -1,8 +1,9 @@
 const LAYOUT_COMPONENT = () => import('@renderer/layouts/index.vue')
-
+const ERROR_COMPONENT = () => import('@renderer/pages/error/index.vue')
 // 组件映射表
 const COMPONENT_MAP = {
-  LAYOUT: LAYOUT_COMPONENT
+  LAYOUT: LAYOUT_COMPONENT,
+  ERROR: ERROR_COMPONENT
 }
 
 /**
@@ -36,18 +37,18 @@ export function generateRoutes(menuData) {
       if (item.component) {
         if (COMPONENT_MAP[item.component]) {
           // 映射特殊组件（如 LAYOUT）
-          // route.component = null
           route.component = COMPONENT_MAP[item.component]
-        } else if (item.component.startsWith('/')) {
-          // 动态导入组件
-          const componentPath = `../pages${item.component}.vue`
+        } else {
+          // 动态导入组件，处理路径前缀问题
+          const normalizedPath = item.component.startsWith('/') ? item.component : `/${item.component}`
+          const componentPath = `../pages${normalizedPath}.vue`
+          
           if (pages[componentPath]) {
             route.component = pages[componentPath]
+          } else {
+            // 匹配不到的组件全部重定向到 error/index.vue
+            route.component = COMPONENT_MAP.ERROR
           }
-          // route.component = () => import(`@renderer/pages${item.component}.vue`)
-        } else {
-          // 其他组件路径
-          // route.component = () => import(`@renderer/pages/${item.component}.vue`)
         }
       }
 

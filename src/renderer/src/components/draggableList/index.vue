@@ -1,7 +1,12 @@
 <template>
   <div>
     <slot>
-      <n-popselect :options="[]" trigger="click">
+      <n-popselect
+        :options="[]"
+        trigger="click"
+        class="flex flex-col"
+        :style="{ maxHeight: `${height - 60}px`, overflowY: 'hidden' }"
+      >
         <n-tooltip trigger="hover">
           <template #trigger>
             <div class="px-2 cursor-pointer hover:text-blue-500 relative">
@@ -16,7 +21,8 @@
             ref="el"
             v-model="modelValue"
             filter=".hideCols"
-            class="-mx-[32px] px-2"
+            class="-mx-[32px] px-2 overflow-y-auto draggable-content"
+            :style="{ maxHeight: `${height - 140}px`, overflowY: 'auto' }"
             @click.stop
           >
             <div
@@ -44,6 +50,12 @@ import { t } from '@renderer/locales'
 
 const modelValue = defineModel({ type: Array, default: () => [] })
 
+const { height } = defineProps({
+  height: {
+    type: Number,
+    default: 300
+  }
+})
 onMounted(() => {
   modelValue.value = modelValue.value.map((item) => ({ ...item, show: true }))
 })
@@ -66,6 +78,19 @@ onMounted(() => {
     border-left: 5px solid transparent;
     border-bottom: 5px solid var(--bg-reverse-color);
     border-right: 5px solid transparent;
+  }
+}
+.draggable-content {
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: var(--n-color);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--bg-color);
+    border-radius: 4px;
   }
 }
 </style>

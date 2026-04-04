@@ -1,5 +1,5 @@
 import './assets/main.css'
-import './theme/index.css'
+import './theme/index.scss'
 import { createApp } from 'vue'
 import i18n from './locales'
 import pinia from './stores'

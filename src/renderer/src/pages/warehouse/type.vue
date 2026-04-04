@@ -38,11 +38,11 @@ const modalFormData = ref({})
 const currentRow = ref({})
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])

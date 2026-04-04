@@ -5,6 +5,7 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
+    v-model:query="query"
     :api="areaApi.getAreaList"
     :page-options="true"
     :modal-form-data="modalFormData"
@@ -19,20 +20,20 @@
     @confirm="handleComfirm"
     @delete-items="handleDeleteItems"
   >
-    <template #beforeModalForm>
+    <!-- <template #beforeModalForm>
       <NGridItem>
         <n-form-item :label="t('parentArea')" path="parentId">
           <n-tree-select
             v-model:value="modalFormData.parentId"
             :options="allAreas"
             clearable
-            :placeholder="t('state')"
+            :placeholder="t('none')"
             key-field="id"
             label-field="name"
           />
         </n-form-item>
       </NGridItem>
-    </template>
+    </template> -->
   </x-table>
 </template>
 <script setup lang="jsx">
@@ -43,7 +44,10 @@ import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
 import { NGridItem, NFormItem, NTreeSelect } from 'naive-ui'
+import { useSelectOptionsStore } from '@renderer/stores/modules/selectOptions'
 
+const selectOptionsStore = useSelectOptionsStore()
+const query = ref({})
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
@@ -52,11 +56,11 @@ const currentRow = ref({})
 const allAreas = ref([])
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -71,9 +75,20 @@ const rules = {
   ]
 }
 const columns = ref([
+  {
+    titleKey: 'parentArea',
+    key: 'parentId',
+    width: 150,
+    inputType: 'xSelect',
+    placeholder: t('none'),
+    api: areaApi.getAllAreas,
+    childrenField: 'xxx',
+    filterable: false
+  },
   { titleKey: 'code', key: 'code', width: 150, inputType: 'input' },
   { titleKey: 'name', key: 'name', width: 150, inputType: 'input' },
   { titleKey: 'enName', key: 'enName', width: 150, inputType: 'input' },
+
   {
     titleKey: 'areaLevel',
     key: 'areaLevel',
@@ -143,6 +158,7 @@ const columns = ref([
 ])
 const handleRefresh = () => {
   isRefresh.value = true
+  selectOptionsStore.refreshList(areaApi.getAllAreas, 'area')
 }
 
 const handleEdit = (row) => {
@@ -176,19 +192,21 @@ const closeModal = () => {
 }
 const handleComfirm = (e) => {
   if (!e) return
+  selectOptionsStore.refreshList(areaApi.getAllAreas, 'area')
 }
-const fecthState = async () => {
-  try {
-    const res = await areaApi.getAllAreas()
-    if (res.success) {
-      allAreas.value = res.data.items || []
-    }
-  } catch (err) {
-    console.log(err.message)
-  }
-}
+// const fecthState = async () => {
+//   try {
+//     const res = await areaApi.getAllAreas()
+//     if (res.success) {
+//       allAreas.value = res.data.items || []
+//     }
+//   } catch (err) {
+//     console.log(err.message)
+//   }
+// }
 onMounted(() => {
-  fecthState()
+  // fecthState()
+  console.log(selectOptionsStore.lists)
 })
 </script>
 

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-2 pt-2 flex-1">
     <slot v-if="filter" name="filter">
-      <div class="fitlter-block p-2 bg-(--bg-card-color) rounded-[5px]">
+      <div class="fitlter-block p-2 bg-(--bg-card-color) rounded-[5px]" :key="locale">
         <n-collapse v-model:expanded-names="expandedNames">
           <n-collapse-item :title="expandedNames.length > 0 ? t('collapse') : t('expand')" name="1">
             <template #header-extra>
@@ -49,7 +49,14 @@
               <Icon name="icon-add" size="14px" />
               <span class="pl-1">{{ t('create') }}</span>
             </n-button>
-
+            <slot name="batchesCreate">
+              <template v-if="batchesCreate">
+                <n-button type="success" size="small" @click="handleCreateInBatches">
+                  <Icon name="icon-add" size="14px" />
+                  <span class="pl-1">{{ t('createInBatches') }}</span>
+                </n-button>
+              </template>
+            </slot>
             <template v-if="multipleCheck">
               <NPopconfirm
                 :negative-text="t('cancel')"
@@ -86,10 +93,13 @@
             {{ t('refresh') }}
           </n-tooltip>
           <!-- <Filter :columns="filterCols" :visible="filter" @on-change="changeFilterData" /> -->
-          <DraggableList v-model="columns" />
+          <DraggableList
+            v-model="columns"
+            :height="tableContainerHeight ? tableContainerHeight : 300"
+          />
         </div>
       </div>
-      <div class="flex-1 h-0 px-2 pb-2">
+      <div ref="tableContainer" class="flex-1 h-0 px-2 pb-2">
         <n-data-table
           :data="tableData || data"
           :columns="tableCols"
@@ -99,7 +109,9 @@
           :row-props="rowProps"
           :bordered="false"
           :striped="striped"
-          :pagination="paginationOptions"
+          :pagination="pageOptions === false ? false : pagination"
+          pagination-behavior-on-filter="first"
+          remote
           style="height: 100%"
           flex-height
           @update:page="handleChangePage"
@@ -154,7 +166,17 @@
   </div>
 </template>
 <script setup lang="jsx">
-import { ref, onMounted, watch, computed, reactive } from 'vue'
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  computed,
+  reactive,
+  nextTick,
+  triggerRef,
+  unref
+} from 'vue'
 import {
   NDataTable,
   useMessage,
@@ -172,7 +194,10 @@ import {
 } from 'naive-ui'
 import { Icon, DraggableList, InputView, DraggableModal } from '@renderer/components'
 import { t } from '@renderer/locales'
+import { useLocale } from '@renderer/locales/useLocales'
 import { isEmpty } from 'es-toolkit/compat'
+
+const { locale } = useLocale()
 
 const emit = defineEmits([
   'refresh',
@@ -184,7 +209,8 @@ const emit = defineEmits([
   'loadSuccess',
   'deleteItems',
   'modal-data-change',
-  'create'
+  'create',
+  'createInBatches'
 ])
 const {
   isRefresh,
@@ -206,8 +232,13 @@ const {
   deleteApi,
   rowProps,
   selectionDisabled,
-  useModal
+  useModal,
+  batchesCreate
 } = defineProps({
+  batchesCreate: {
+    type: Boolean,
+    default: false
+  },
   rowProps: {
     type: Function,
     default: () => ({})
@@ -305,7 +336,12 @@ const {
     default: true
   }
 })
+
 const message = useMessage()
+const tableContainer = ref(null)
+const tableContainerHeight = ref(0)
+let tableContainerObserver = null
+let heightRafId = null
 const columns = defineModel('columns', {
   type: Array,
   default: () => []
@@ -319,16 +355,40 @@ const filterData = defineModel('query', { type: Object, default: () => ({}) })
 const filterFormRef = ref(null)
 const modalFormData = defineModel('modalFormData', { type: Object, default: () => ({}) })
 const modalFormRef = ref(null)
-const striped = ref(false)
+const striped = ref(true)
 const expandedNames = ref(['1'])
 const resetKey = ref(0)
 
-const filterCols = computed(() =>
-  columns.value.filter((item) => item.filterable !== false && item.inputType)
-)
-const modalCols = computed(() =>
-  columns.value.filter((item) => item.modalEnable !== false && item.inputType)
-)
+const processColumnOptions = (item) => {
+  const col = { ...item, title: item.titleKey ? t(item.titleKey) : '' }
+  if (['xSelect', 'treeSelect'].includes(col.inputType)) {
+    return col
+  }
+  const options = unref(col.options)
+  if (options && Array.isArray(options)) {
+    col.options = options.map((opt) => ({
+      ...opt,
+      label: opt.labelKey ? t(opt.labelKey) : opt.label || ''
+    }))
+  } else {
+    col.options = options
+  }
+  return col
+}
+
+const filterCols = computed(() => {
+  void locale.value
+  return columns.value
+    .filter((item) => item.filterable !== false && item.inputType)
+    .map(processColumnOptions)
+})
+
+const modalCols = computed(() => {
+  void locale.value
+  return columns.value
+    .filter((item) => item.modalEnable !== false && item.inputType)
+    .map(processColumnOptions)
+})
 const modalHeader = computed(() => (isEdit.value ? t('edit') : t('create')))
 const isEdit = defineModel('isEdit', {
   type: Boolean,
@@ -339,37 +399,31 @@ const pagination = reactive({
   page: 1,
   itemCount: 0,
   pageSize: 10,
-  showSizePicker: true
-})
-const paginationOptions = computed(() => {
-  if (pageOptions) {
-    return {
-      ...pagination,
-      ...pageOptions,
-      ...{
-        pageSizes: [
-          {
-            label: t('pageOption.perPages', { items: 10 }),
-            value: 10
-          },
-          {
-            label: t('pageOption.perPages', { items: 20 }),
-            value: 20
-          },
-          {
-            label: t('pageOption.perPages', { items: 50 }),
-            value: 50
-          },
-          {
-            label: t('pageOption.perPages', { items: 100 }),
-            value: 100
-          }
-        ]
-      }
+  showSizePicker: true,
+  pageSizes: [
+    {
+      label: t('pageOption.perPages', { items: 10 }),
+      value: 10
+    },
+    {
+      label: t('pageOption.perPages', { items: 20 }),
+      value: 20
+    },
+    {
+      label: t('pageOption.perPages', { items: 50 }),
+      value: 50
+    },
+    {
+      label: t('pageOption.perPages', { items: 100 }),
+      value: 100
     }
-  }
-  return false
+  ]
 })
+
+if (pageOptions && typeof pageOptions === 'object') {
+  Object.assign(pagination, pageOptions)
+}
+
 const changeFilterData = () => {
   loadTableData()
   // emit('onSearch', filterData.value)
@@ -408,31 +462,51 @@ const handleChangePage = (currentPage) => {
 }
 const handleChangePageSize = (pageSize) => {
   pagination.pageSize = pageSize
+  pagination.page = 1
   loadTableData()
 }
 
 const handleCreate = () => {
   if (useModal) {
+    // 1. 避免直接覆盖整个 modalFormData.value，防止破坏原有的响应式代理导致大量组件销毁重建
+    // 2. 必须深拷贝 defaultValue，防止表单修改时污染了原来的 columns 配置，导致无意义的计算属性重估和卡顿
+    const newFormData = {}
+    modalCols.value.forEach((col) => {
+      const def = col.defaultValue ?? null
+      newFormData[col.key] = def !== null && typeof def === 'object' ? structuredClone(def) : def
+    })
+
+    // 清空旧数据并赋予新数据，保持对象引用不变
+    Object.keys(modalFormData.value).forEach((key) => {
+      delete modalFormData.value[key]
+    })
+    Object.assign(modalFormData.value, newFormData)
+
     showModal.value = true
     emit('update:isEdit', false)
   } else {
     emit('create')
   }
 }
+
+const handleCreateInBatches = () => {
+  emit('createInBatches')
+}
 const loadTableData = () => {
   const query = { ...filterData.value, ...{ page: pagination.page, pageSize: pagination.pageSize } }
-
   if (api) {
     tableLoading.value = true
     api(query)
       .then((res) => {
         data.value = res.data.items
-        pagination.itemCount = res.data.total || 0
+        pagination.itemCount = Number(res.data.total) || 0
+        pagination.page = Number(res.data.page) || pagination.page
+        pagination.pageSize = Number(res.data.pageSize) || pagination.pageSize
         emit('loadSuccess', data.value)
         emit('update:isRefresh', false)
       })
       .catch((err) => {
-        message.error(err.message || '加载数据失败')
+        console.error(err.message || '加载数据失败')
       })
       .finally(() => {
         tableLoading.value = false
@@ -443,9 +517,23 @@ const loadTableData = () => {
   }
 }
 const tableCols = computed(() => {
+  void locale.value // 触发依赖收集，让 tableCols 在语言切换时重新计算
   let res = columns.value
     ?.filter((item) => item.show !== false && item.visible !== false)
-    ?.map((item) => ({ ...item, title: item.titleKey ? t(item.titleKey) : '' }))
+    ?.map((item) => {
+      const col = processColumnOptions(item)
+
+      // 增强 render 函数，让其能够响应 locale 变化
+      if (col.render) {
+        const originalRender = col.render
+        col.render = (row, index) => {
+          void locale.value // 让每次渲染都追踪 locale 变化
+          return originalRender(row, index)
+        }
+      }
+
+      return col
+    })
 
   if (multipleCheck) {
     res.unshift({
@@ -486,7 +574,9 @@ const handleDeleteItems = () => {
 const handleRefresh = () => {
   loadTableData()
   // emit('update:isEdit', false)
-  modalFormData.value = {}
+  Object.keys(modalFormData.value).forEach((key) => {
+    delete modalFormData.value[key]
+  })
 }
 const handleSubmit = async () => {
   if (!modalApi) return
@@ -524,7 +614,9 @@ watch(isEdit, (val) => {
   if (val) {
     showModal.value = true
   } else {
-    modalFormData.value = {}
+    Object.keys(modalFormData.value).forEach((key) => {
+      delete modalFormData.value[key]
+    })
   }
 })
 watch(
@@ -537,6 +629,7 @@ watch(
     immediate: true
   }
 )
+
 watch(
   () => isRefresh,
   (val) => {
@@ -547,6 +640,33 @@ watch(
 )
 onMounted(() => {
   loadTableData()
+  nextTick(() => {
+    const el = tableContainer.value
+    if (!el) return
+
+    const updateHeight = () => {
+      if (heightRafId) cancelAnimationFrame(heightRafId)
+      heightRafId = requestAnimationFrame(() => {
+        tableContainerHeight.value = el.getBoundingClientRect().height || 0
+      })
+    }
+
+    updateHeight()
+    if (typeof ResizeObserver !== 'undefined') {
+      tableContainerObserver = new ResizeObserver(updateHeight)
+      tableContainerObserver.observe(el)
+    } else {
+      window.addEventListener('resize', updateHeight)
+    }
+  })
+})
+onBeforeUnmount(() => {
+  if (heightRafId) cancelAnimationFrame(heightRafId)
+  heightRafId = null
+  if (tableContainerObserver) {
+    tableContainerObserver.disconnect()
+    tableContainerObserver = null
+  }
 })
 const modalFieldRefs = ref({})
 const setModalFieldRef = (key, el) => {
@@ -555,7 +675,8 @@ const setModalFieldRef = (key, el) => {
 defineExpose({
   loadTableData,
   tableData: data.value,
-  getFieldRef: (key) => modalFieldRefs.value[key]
+  getFieldRef: (key) => modalFieldRefs.value[key],
+  getTableContainerHeight: () => tableContainerHeight.value
 })
 </script>
 <style lang="scss" scoped>

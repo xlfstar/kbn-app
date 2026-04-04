@@ -1,6 +1,6 @@
 {
   "name": "kbn-electron-app",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An Electron application with Vue",
   "main": "./out/main/index.js",
   "author": "xlfstar",
@@ -36,7 +36,6 @@
       "out/**/*",
       "package.json",
       "src/renderer/**/*",
-      "!node_modules/**/*",
       "!src/**/*.ts",
       "!.gitignore",
       "!README.md"
@@ -66,8 +65,10 @@
     "dayjs": "^1.11.19",
     "electron-updater": "^6.3.9",
     "es-toolkit": "^1.43.0",
+    "motion-v": "^2.0.0",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
+    "three": "^0.183.2",
     "vue-draggable-plus": "^0.6.1",
     "vue-i18n": "^11.2.8",
     "vue-router": "^4.6.4"

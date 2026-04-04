@@ -5,6 +5,7 @@
       v-model:columns="columns"
       v-model:is-edit="isEdit"
       v-model:checked-row-keys="checkedRowKeys"
+      v-model:query="query"
       :table-data="tableData"
       :filter="true"
       :page-options="true"
@@ -92,16 +93,16 @@ const currentGroupId = ref()
 const groupLoading = ref(false)
 const loading = ref(false)
 const modalFormData = ref({})
-
+const query = ref({})
 const visible = ref(false)
 
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])

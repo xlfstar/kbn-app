@@ -12,6 +12,7 @@ const router = useRouter()
 const menuStore = useMenuStore()
 const naiveUiTheme = computed(() => (appTheme.theme === 'dark' ? darkTheme : null))
 const redirect = computed(() => useTabsStore().currentTab || 'dashboard')
+
 const naiveLocale = computed(() => {
   return {
     locale: locale.value === 'zh_CN' ? zhCN : null,
@@ -21,7 +22,17 @@ const naiveLocale = computed(() => {
 onMounted(async () => {
   if (authStore.isLoggedIn) {
     await menuStore.initRoutes()
-    router.push({ name: redirect.value })
+    const tabsStore = useTabsStore()
+    const targetTab = tabsStore.tabs.find((t) => t.name === tabsStore.currentTab)
+    if (targetTab) {
+      router.push({
+        name: targetTab.name,
+        query: targetTab.query,
+        params: targetTab.params
+      })
+    } else {
+      router.push({ name: redirect.value })
+    }
   }
 })
 </script>

@@ -10,6 +10,9 @@ export {
   warehouseAreaApi,
   warehouseLocationApi,
   warehouseTypeApi,
-  warehouseAreaTypeApi,
+  warehouseZoneApi,
   warehouseLocationTypeApi
 } from './warehouse'
+export { UploadApi } from './upload'
+export { dptApi } from './department'
+export { purchaseOrderApi } from './purchaseOrder'

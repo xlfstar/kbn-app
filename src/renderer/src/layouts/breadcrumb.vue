@@ -1,9 +1,11 @@
 <template>
-  <n-breadcrumb separator=">" class="py-2 bg-(--bg-text-color)">
-    <n-breadcrumb-item v-for="(item, index) in list" :key="index" style="font-size: 12px">
-      {{ item.meta.title[lang] }}
-    </n-breadcrumb-item>
-  </n-breadcrumb>
+  <div class="flex">
+    <n-breadcrumb separator=">" class="py-2 bg-(--bg-text-color) flex-1">
+      <n-breadcrumb-item v-for="(item, index) in list" :key="index" style="font-size: 12px">
+        {{ item.meta.title[lang] }}
+      </n-breadcrumb-item>
+    </n-breadcrumb>
+  </div>
 </template>
 <script setup>
 import { useRoute } from 'vue-router'

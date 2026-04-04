@@ -5,6 +5,7 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
+    v-model:query="query"
     :api="goodsApi.getPackageList"
     :page-options="true"
     :modal-form-data="modalFormData"
@@ -28,7 +29,7 @@ import { goodsApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
-
+const query = ref({})
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
@@ -36,11 +37,11 @@ const modalFormData = ref({})
 const currentRow = ref({})
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])

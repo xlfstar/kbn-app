@@ -8,7 +8,13 @@ export default defineConfig({
     __dirname: `JSON.stringify(${JSON.stringify(__dirname)})`,
     __filename: `JSON.stringify(${JSON.stringify(__filename)})`
   },
-  main: {},
+  main: {
+    build: {
+      rollupOptions: {
+        external: []
+      }
+    }
+  },
   preload: {},
   renderer: {
     resolve: {
@@ -16,7 +22,24 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-
+    // 添加 optimizeDeps 配置
+    optimizeDeps: {
+      include: ['motion-v'] // 确保 motion-v 被预构建
+    },
+    // 添加 ssr 配置（虽然 renderer 不是 SSR，但有时需要）
+    ssr: {
+      noExternal: ['motion-v'] // 强制打包 motion-v
+    },
+    // 添加构建配置
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'motion-v': ['motion-v'] // 将 motion-v 单独打包
+          }
+        }
+      }
+    },
     plugins: [vue(), vueJsx(), tailwindcss()]
   }
 })

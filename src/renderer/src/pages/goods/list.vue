@@ -5,44 +5,49 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
+    v-model:query="query"
     :api="goodsApi.getGoodsList"
-    :page-options="true"
+    :page-options="{ pageSize: 30 }"
     :modal-form-data="modalFormData"
     :modal-api="isEdit ? goodsApi.updateGoods : goodsApi.createGoods"
-    :scroll-x="1600"
+    :scroll-x="2400"
     :multiple-check="true"
+    :use-modal="false"
     :rules="rules"
     @refresh="handleRefresh"
     @close-modal="closeModal"
     @confirm="handleComfirm"
     @delete-items="handleDeleteItems"
+    @create="handleCreate"
   >
   </x-table>
 </template>
 <script setup lang="jsx">
 import { ref, computed } from 'vue'
 import { NButton, NTag, NSpace, NPopconfirm } from 'naive-ui'
-import { goodsApi } from '@renderer/api'
+import { goodsApi, categoryApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
-import { useCategoryStore } from '@renderer/stores'
+import { useRouter } from 'vue-router'
+import { useLocale } from '@renderer/locales/useLocales'
+const { locale } = useLocale()
+const router = useRouter()
 
-const categoryStore = useCategoryStore()
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
 const modalFormData = ref({})
 const currentRow = ref({})
+const query = ref({})
 
-const categoryOptions = computed(() => categoryStore.categoriesTree)
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -57,6 +62,7 @@ const rules = {
   ]
 }
 const columns = ref([
+  { titleKey: 'picture', key: 'picture', width: 150 },
   { titleKey: 'code', key: 'code', width: 150, inputType: 'input' },
 
   { titleKey: 'name', key: 'name', width: 150, inputType: 'input' },
@@ -65,39 +71,63 @@ const columns = ref([
     titleKey: 'aside.category',
     key: 'categoryId',
     width: 150,
-    inputType: 'treeSelect',
-    options: categoryOptions.value,
-    keyField: 'id'
+    inputType: 'xSelect',
+    api: categoryApi.getAllCategories,
+
+    props: {
+      multiple: true,
+      maxTagCount: 1,
+      filterable: true
+    },
+    render: (row) => {
+      const { category } = row || {}
+      return locale.value === 'zh_CN' ? category?.name || '' : category?.enName || ''
+    }
   },
   {
-    titleKey: 'manufacturer',
-    key: 'manufacturer',
+    titleKey: 'aside.supplier',
+    key: 'supplierIds',
     width: 150,
-    inputType: 'input'
+    render: (row) => {
+      const { suppliers } = row || {}
+      return suppliers?.map((item) => item.name).join(',') || ''
+    }
   },
   {
     titleKey: 'warehouse',
     key: 'warehouseId',
     width: 150,
-    inputType: 'input'
+    // inputType: 'input'
+    render: (row) => {
+      const { warehouse } = row || {}
+      return warehouse?.name || ''
+    }
+  },
+  {
+    titleKey: 'warehouseZone',
+    key: 'warehouseZoneId',
+    width: 150,
+    render: (row) => {
+      const { warehouseZone } = row || {}
+      return warehouseZone?.name || ''
+    }
+    // inputType: 'input'
   },
   {
     titleKey: 'warehouseLocation',
     key: 'warehouseLocationId',
     width: 150,
-    inputType: 'input'
+    render: (row) => {
+      const { warehouseLocation } = row || {}
+      return warehouseLocation?.name || ''
+    }
+    // inputType: 'input'
   },
   {
     titleKey: 'manufacturer',
     key: 'manufacturer',
-    width: 150,
-    inputType: 'input'
-  },
-  { titleKey: 'picture', key: 'picture', width: 150, inputType: 'input' },
-  {
-    titleKey: 'aside.supplier',
-    key: 'supplierIds',
-    width: 100
+    width: 150
+    // inputType: 'input'
   },
 
   {
@@ -135,10 +165,13 @@ const columns = ref([
     titleKey: 'actions',
     key: 'actions',
     fixed: 'right',
-    width: 120,
+    width: 150,
     render: (row) => {
       return (
         <NSpace>
+          <NButton size="tiny" onClick={() => handleView(row)}>
+            {t('detail')}
+          </NButton>
           <NButton type="info" size="tiny" onClick={() => handleEdit(row)}>
             {t('edit')}
           </NButton>
@@ -182,7 +215,6 @@ const handleDelItem = async (row) => {
   }
 }
 const handleDeleteItems = (ids) => {
-  console.log({ ids })
   if (ids.length > 0) {
     goodsApi.removeGoodsList({ ids }).then((res) => {
       if (res.success) {
@@ -197,6 +229,13 @@ const closeModal = () => {
 }
 const handleComfirm = (e) => {
   if (!e) return
+}
+const handleView = (row) => {
+  router.push({ name: 'goodsDetail', query: { id: row.id } })
+}
+const handleCreate = () => {
+  isEdit.value = false
+  router.push('/goods/add')
 }
 </script>
 

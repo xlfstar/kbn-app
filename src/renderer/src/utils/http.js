@@ -44,12 +44,11 @@ instance.interceptors.response.use(
     // } else {
     //   return Promise.reject(data);
     // }
-
     return data
   },
   (error) => {
     // 对响应错误做点什么
-
+    const message = window.$message
     let errorMessage = '请求失败'
 
     if (error.response) {
@@ -99,14 +98,7 @@ instance.interceptors.response.use(
     }
     console.error(errorMessage)
     // 显示错误提示（根据你的 UI 框架选择合适的方式）
-    // if (message) {
-    //   // message.error(errorMessage)
-    // } else {
-    //   console.error(errorMessage)
-    //   // 或者使用 Electron 的 dialog
-    //   // window.electron?.dialog?.showErrorBox?.('请求错误', errorMessage);
-    // }
-
+    message.error(errorMessage)
     return Promise.reject(error)
   }
 )

@@ -5,12 +5,14 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
+    v-model:query="query"
     :api="warehouseApi.getWarehouseList"
     :page-options="true"
     :modal-form-data="modalFormData"
     :modal-api="isEdit ? warehouseApi.updateWarehouse : warehouseApi.createWarehouse"
     :multiple-check="true"
     :rules="rules"
+    :scroll-x="2000"
     @refresh="handleRefresh"
     @close-modal="closeModal"
     @confirm="handleComfirm"
@@ -26,7 +28,12 @@ import { warehouseTypeApi, warehouseApi, areaApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
 import dayjs from 'dayjs'
+import { useRouter } from 'vue-router'
+import { useSelectOptionsStore } from '@renderer/stores/modules/selectOptions'
 
+const selectOptionsStore = useSelectOptionsStore()
+const router = useRouter()
+const query = ref({})
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
@@ -37,11 +44,11 @@ const stateOptions = ref([])
 const cityOptions = ref([])
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -178,10 +185,13 @@ const columns = ref([
     titleKey: 'actions',
     key: 'actions',
     fixed: 'right',
-    width: 120,
+    width: 150,
     render: (row) => {
       return (
         <NSpace>
+          <NButton size="tiny" onClick={() => handleView(row)}>
+            {t('detail')}
+          </NButton>
           <NButton type="info" size="tiny" onClick={() => handleEdit(row)}>
             {t('edit')}
           </NButton>
@@ -206,6 +216,19 @@ const columns = ref([
 ])
 const handleRefresh = () => {
   isRefresh.value = true
+  selectOptionsStore.refreshList(warehouseApi.getAllWarehouses, 'warehouseId')
+}
+
+const handleView = (row) => {
+  const { id } = row || {}
+  if (id) {
+    router.push({
+      path: '/warehouse/warehouseDetail',
+      query: {
+        id
+      }
+    })
+  }
 }
 
 const handleEdit = async (row) => {
@@ -247,7 +270,10 @@ const closeModal = () => {
 }
 const handleComfirm = (e) => {
   if (!e) return
+  selectOptionsStore.refreshList(warehouseApi.getAllWarehouses, 'warehouseId')
 }
+
+//更新
 watch(cityOptions, (opts) => {
   const col = columns.value.find((i) => i.key === 'city')
   if (col) col.options = opts
@@ -263,6 +289,7 @@ watch(
     }
   }
 )
+
 onMounted(() => {})
 </script>
 

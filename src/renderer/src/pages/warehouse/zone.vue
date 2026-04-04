@@ -5,15 +5,14 @@
     v-model:is-edit="isEdit"
     v-model:checked-row-keys="checkedRowKeys"
     v-model:is-refresh="isRefresh"
-    :api="warehouseAreaTypeApi.getWarehouseAreaTypeList"
+    v-model:query="query"
+    :api="warehouseZoneApi.getWarehouseZoneList"
     :page-options="true"
     :modal-form-data="modalFormData"
     :modal-api="
-      isEdit
-        ? warehouseAreaTypeApi.updateWarehouseAreaType
-        : warehouseAreaTypeApi.createWarehouseAreaType
+      isEdit ? warehouseZoneApi.updateWarehouseZone : warehouseZoneApi.createWarehouseZone
     "
-    :scroll-x="900"
+    :scroll-x="1000"
     :multiple-check="true"
     modal-grid-cols="1"
     modal-width="400"
@@ -28,11 +27,14 @@
 <script setup lang="jsx">
 import { ref, computed, onMounted } from 'vue'
 import { NButton, NTag, NSpace, NPopconfirm } from 'naive-ui'
-import { warehouseAreaTypeApi } from '@renderer/api'
+import { warehouseZoneApi } from '@renderer/api'
 import { t } from '@renderer/locales'
 import { XTable } from '@renderer/components'
+import { useSelectOptionsStore } from '@renderer/stores/modules/selectOptions'
 import dayjs from 'dayjs'
-console.log(warehouseAreaTypeApi)
+
+const selectOptionsStore = useSelectOptionsStore()
+const query = ref({})
 const checkedRowKeys = ref([])
 const isEdit = ref(false)
 const isRefresh = ref(false)
@@ -40,11 +42,11 @@ const modalFormData = ref({})
 const currentRow = ref({})
 const statusOptions = computed(() => [
   {
-    label: t('enable'),
+    labelKey: 'enable',
     value: 1
   },
   {
-    label: t('disable'),
+    labelKey: 'disable',
     value: 0
   }
 ])
@@ -58,7 +60,7 @@ const rules = {
 }
 const columns = ref([
   { titleKey: 'name', key: 'name', width: 150, inputType: 'input' },
-
+  { titleKey: 'enName', key: 'enName', width: 150, inputType: 'input' },
   {
     titleKey: 'status',
     key: 'status',
@@ -133,6 +135,7 @@ const columns = ref([
 ])
 const handleRefresh = () => {
   isRefresh.value = true
+  selectOptionsStore.refreshList(warehouseZoneApi.getAllWarehouseZones, 'zoneId')
 }
 
 const handleEdit = (row) => {
@@ -145,7 +148,7 @@ const handleEdit = (row) => {
 const handleDelItem = async (row) => {
   const { id } = row || {}
   try {
-    await warehouseAreaTypeApi.removeWarehouseAreaType(id)
+    await warehouseZoneApi.removeWarehouseZone(id)
     handleRefresh()
   } catch (err) {
     console.log(err.message)
@@ -153,7 +156,7 @@ const handleDelItem = async (row) => {
 }
 const handleDeleteItems = (ids) => {
   if (ids.length > 0) {
-    warehouseAreaTypeApi.removeWarehouseAreaTypeList({ ids }).then((res) => {
+    warehouseZoneApi.removeWarehouseZoneList({ ids }).then((res) => {
       if (res.success) {
         handleRefresh()
       }
@@ -166,6 +169,7 @@ const closeModal = () => {
 }
 const handleComfirm = (e) => {
   if (!e) return
+  selectOptionsStore.refreshList(warehouseZoneApi.getAllWarehouseZones, 'zoneId')
 }
 
 onMounted(() => {})

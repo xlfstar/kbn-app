@@ -5,7 +5,7 @@ const apiUrl = {
   WAREHOUSE_AREA_URL: '/warehouse-areas',
   WAREHOUSE_LOCATION_URL: '/warehouse-locations',
   WAREHOUSE_TYPE_URL: '/warehouse-types',
-  WAREHOUSE_AREA_TYPE_URL: '/warehouse-area-types',
+  WAREHOUSE_ZONE_URL: '/zones',
   WAREHOUSE_LOCATION_TYPE_URL: '/warehouse-location-types'
 }
 export const warehouseApi = {
@@ -34,8 +34,10 @@ export const warehouseLocationApi = {
   removeWarehouseLocation: (id) => request.delete(`${apiUrl.WAREHOUSE_LOCATION_URL}/${id}`),
   removeWarehouseLocations: (data) => request.delete(apiUrl.WAREHOUSE_LOCATION_URL, data),
   getWarehouseLocationById: (id) => request.get(`${apiUrl.WAREHOUSE_LOCATION_URL}/${id}`),
-  getAllWarehouseLocations: () =>
-    request.get(apiUrl.WAREHOUSE_LOCATION_URL + '?page=1&pageSize=1000')
+  batchCreateWarehouseLocation: (data) =>
+    request.post(apiUrl.WAREHOUSE_LOCATION_URL + '/bulk', data),
+  getMaxShelfNoByWarehouseId: (data) =>
+    request.get(apiUrl.WAREHOUSE_LOCATION_URL + '/max-shelf-no', data)
 }
 export const warehouseTypeApi = {
   getWarehouseTypeList: (data) => request.get(apiUrl.WAREHOUSE_TYPE_URL, data),
@@ -46,16 +48,14 @@ export const warehouseTypeApi = {
   getWarehouseTypeById: (id) => request.get(`${apiUrl.WAREHOUSE_TYPE_URL}/${id}`),
   getAllWarehouseTypes: () => request.get(apiUrl.WAREHOUSE_TYPE_URL + '?page=1&pageSize=1000')
 }
-export const warehouseAreaTypeApi = {
-  getWarehouseAreaTypeList: (data) => request.get(apiUrl.WAREHOUSE_AREA_TYPE_URL, data),
-  createWarehouseAreaType: (data) => request.post(apiUrl.WAREHOUSE_AREA_TYPE_URL, data),
-  updateWarehouseAreaType: (data) =>
-    request.put(`${apiUrl.WAREHOUSE_AREA_TYPE_URL}/${data.id}`, data),
-  removeWarehouseAreaType: (id) => request.delete(`${apiUrl.WAREHOUSE_AREA_TYPE_URL}/${id}`),
-  removeWarehouseAreaTypes: (data) => request.delete(apiUrl.WAREHOUSE_AREA_TYPE_URL, data),
-  getWarehouseAreaTypeById: (id) => request.get(`${apiUrl.WAREHOUSE_AREA_TYPE_URL}/${id}`),
-  getAllWarehouseAreaTypes: () =>
-    request.get(apiUrl.WAREHOUSE_AREA_TYPE_URL + '?page=1&pageSize=1000')
+export const warehouseZoneApi = {
+  getWarehouseZoneList: (data) => request.get(apiUrl.WAREHOUSE_ZONE_URL, data),
+  createWarehouseZone: (data) => request.post(apiUrl.WAREHOUSE_ZONE_URL, data),
+  updateWarehouseZone: (data) => request.put(`${apiUrl.WAREHOUSE_ZONE_URL}/${data.id}`, data),
+  removeWarehouseZone: (id) => request.delete(`${apiUrl.WAREHOUSE_ZONE_URL}/${id}`),
+  removeWarehouseZones: (data) => request.delete(apiUrl.WAREHOUSE_ZONE_URL, data),
+  getWarehouseZoneById: (id) => request.get(`${apiUrl.WAREHOUSE_ZONE_URL}/${id}`),
+  getAllWarehouseZones: () => request.get(apiUrl.WAREHOUSE_ZONE_URL + '?page=1&pageSize=1000')
 }
 export const warehouseLocationTypeApi = {
   getWarehouseLocationTypeList: (data) => request.get(apiUrl.WAREHOUSE_LOCATION_TYPE_URL, data),

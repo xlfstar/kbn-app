@@ -9,5 +9,6 @@ export const categoryApi = {
   updateCategory: (data) => request.put(`${apiUrl.RULES_URL}/${data.id}`, data),
   removeCategory: (id) => request.delete(`${apiUrl.RULES_URL}/${id}`),
   removeCategories: (data) => request.delete(apiUrl.RULES_URL, data),
-  getCategoryById: (id) => request.get(`${apiUrl.RULES_URL}/${id}`)
+  getCategoryById: (id) => request.get(`${apiUrl.RULES_URL}/${id}`),
+  getAllCategories: () => request.get(apiUrl.RULES_URL, { page: 1, pageSize: 9999 })
 }
